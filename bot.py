@@ -1,8 +1,9 @@
 import os
 import logging
 import requests
+import asyncio
 from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
 from telegram.error import Conflict
 
 # Жестко заданные значения (замените на свои реальные значения)
