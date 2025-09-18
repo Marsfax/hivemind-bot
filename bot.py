@@ -58,17 +58,40 @@ async def analyze_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 "content": f"Проанализируй этот комментарий: '{comment_text}'"
             }
         ],
-        "temperature": 0.1
+        "temperature": 0.1,
+        "max_tokens": 500
     }
     
     try:
         logger.info(f"Отправка запроса к DeepSeek API: {comment_text[:50]}...")
         response = requests.post(DEEPSEEK_API_URL, json=payload, headers=headers, timeout=30)
         
+        # Детальная проверка ответа
+        logger.info(f"Статус ответа: {response.status_code}")
+        logger.info(f"Заголовки ответа: {dict(response.headers)}")
+        
         # Проверяем статус ответа
         if response.status_code != 200:
-            logger.error(f"Ошибка API DeepSeek: {response.status_code} - {response.text}")
-            await update.message.reply_text("⚠️ Ошибка при обращении к сервису анализа. Попробуйте позже.")
+            error_detail = f"Status: {response.status_code}"
+            try:
+                error_json = response.json()
+                if 'error' in error_json:
+                    error_detail += f", Message: {error_json['error'].get('message', 'Unknown error')}"
+                    error_detail += f", Type: {error_json['error'].get('type', 'Unknown')}"
+            except:
+                error_detail += f", Response: {response.text[:200]}"
+            
+            logger.error(f"Ошибка API DeepSeek: {error_detail}")
+            
+            # Более информативное сообщение для пользователя
+            if response.status_code == 401:
+                await update.message.reply_text("❌ Ошибка аутентификации. Проверьте API-ключ DeepSeek.")
+            elif response.status_code == 429:
+                await update.message.reply_text("❌ Превышен лимит запросов к DeepSeek API.")
+            elif response.status_code == 500:
+                await update.message.reply_text("❌ Внутренняя ошибка сервера DeepSeek. Попробуйте позже.")
+            else:
+                await update.message.reply_text(f"❌ Ошибка при обращении к сервису анализа (код: {response.status_code}).")
             return
             
         result = response.json()
@@ -80,7 +103,7 @@ async def analyze_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         ai_response = result['choices'][0]['message']['content']
-        logger.info(f"Получен ответ от DeepSeek: {ai_response[:50]}...")
+        logger.info(f"Получен ответ от DeepSeek: {ai_response[:100]}...")
         
         await update.message.reply_text(f"🔍 Результат анализа:\n\n{ai_response}")
         
