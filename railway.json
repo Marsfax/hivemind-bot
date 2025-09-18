@@ -7,7 +7,7 @@
   "deploy": {
     "startCommand": "python bot.py",
     "restartPolicyType": "ON_FAILURE",
-    "healthcheckPath": "/",
-    "healthcheckTimeout": 30
+    "healthcheckPath": "",
+    "healthcheckTimeout": 300
   }
 }
