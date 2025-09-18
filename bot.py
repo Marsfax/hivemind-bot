@@ -1,9 +1,8 @@
 import os
 import logging
-import requests
+import sys
 from dotenv import load_dotenv
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes, MessageHandler, filters
+
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -15,11 +14,28 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Проверка обязательных переменных окружения
+required_vars = ['BOT_TOKEN', 'DEEPSEEK_API_KEY', 'CHANNEL_ID']
+missing_vars = [var for var in required_vars if not os.getenv(var)]
+
+if missing_vars:
+    error_msg = f"Отсутствуют обязательные переменные окружения: {', '.join(missing_vars)}"
+    logger.error(error_msg)
+    
+    # Вывод всех переменных окружения для отладки (не для продакшена)
+    logger.info("Доступные переменные окружения:")
+    for key, value in os.environ.items():
+        logger.info(f"{key}: {value}")
+
 # Конфигурация
 BOT_TOKEN = os.getenv('8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0')
 DEEPSEEK_API_KEY = os.getenv('sk-2850aebc4d6f4f66b839bd761bf5f083')
 CHANNEL_ID = os.getenv('-1003030620712')  # ID вашего канала
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+
+if not BOT_TOKEN or not BOT_TOKEN.startswith('') or ':' not in BOT_TOKEN:
+    logger.error(f"Неверный формат токена: {BOT_TOKEN}")
+    sys.exit(1)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /start"""
