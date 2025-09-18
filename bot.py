@@ -7,7 +7,7 @@ from telegram.error import Conflict
 
 # Жестко заданные значения (замените на свои реальные значения)
 BOT_TOKEN = '8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0'  # Ваш токен бота
-DEEPSEEK_API_KEY = 'sk-your-deepseek-api-key-here'  # Ваш API-ключ DeepSeek
+DEEPSEEK_API_KEY = 'sk-6ff98cb4c92d4372a7e8188bceb1e953'  # Ваш API-ключ DeepSeek
 CHANNEL_ID = '-1001234567890'  # ID вашего канала (начинается с -100)
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
