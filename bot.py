@@ -1,12 +1,15 @@
 import os
 import logging
-import asyncio
+import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-from dotenv import load_dotenv
+from telegram.error import Conflict
 
-# Загрузка переменных окружения
-load_dotenv()
+# Жестко заданные значения (замените на свои реальные значения)
+BOT_TOKEN = '8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0'  # Ваш токен бота
+DEEPSEEK_API_KEY = 'sk-your-deepseek-api-key-here'  # Ваш API-ключ DeepSeek
+CHANNEL_ID = '-1001234567890'  # ID вашего канала (начинается с -100)
+DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 # Настройка логирования
 logging.basicConfig(
@@ -14,14 +17,6 @@ logging.basicConfig(
     level=logging.INFO
 )
 logger = logging.getLogger(__name__)
-
-# Жестко задаем токен (замените на ваш реальный токен)
-BOT_TOKEN = '8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0'
-
-# Остальные переменные (также можно заменить на жесткие значения)
-DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', 'sk-2850aebc4d6f4f66b839bd761bf5f083')
-CHANNEL_ID = os.getenv('CHANNEL_ID', '-1003030620712')
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Обработчик команды /start"""
@@ -101,15 +96,35 @@ async def analyze_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Запуск бота"""
-    # Создаем приложение
-    application = Application.builder().token(BOT_TOKEN).build()
+    max_retries = 5
+    retry_delay = 10  # секунды
     
-    # Добавляем обработчики команд
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("analyze", analyze_comment))
-    
-    # Запускаем бота
-    application.run_polling()
-    logger.info("Бот запущен!")
+    for attempt in range(max_retries):
+        try:
+            # Создаем приложение
+            application = Application.builder().token(BOT_TOKEN).build()
+            
+            # Добавляем обработчики команд
+            application.add_handler(CommandHandler("start", start))
+            application.add_handler(CommandHandler("analyze", analyze_comment))
+            
+            # Запускаем бота
+            logger.info(f"Попытка запуска бота ({attempt + 1}/{max_retries})...")
+            application.run_polling(drop_pending_updates=True)
+            logger.info("Бот запущен!")
+            break
+            
+        except Conflict as e:
+            logger.error(f"Обнаружен конфликт: {e}")
+            if attempt < max_retries - 1:
+                logger.info(f"Повторная попытка через {retry_delay} секунд...")
+                import time
+                time.sleep(retry_delay)
+            else:
+                logger.error("Достигнуто максимальное количество попыток. Бот остановлен.")
+        except Exception as e:
+            logger.error(f"Неожиданная ошибка: {e}")
+            break
+
 if __name__ == '__main__':
     main()
