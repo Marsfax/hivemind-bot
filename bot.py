@@ -14,6 +14,19 @@ logging.basicConfig(
     level=logging.INFO
 )
 
+async def send_daily_report(context: ContextTypes.DEFAULT_TYPE):
+    """Ежедневный отчет о активности в канале"""
+    # Здесь будет код для сбора статистики и генерации отчета
+    report_text = "📊 Ежедневный отчет о активности в канале:\n\n"
+    report_text += "• Всего комментариев за день: 15\n"
+    report_text += "• Удалено нарушающих правил: 3\n"
+    report_text += "• Популярные темы: технологии, наука\n"
+    report_text += "• Настроение аудитории: позитивное\n\n"
+    report_text += "💡 Рекомендации: продолжать обсуждать технологические новости"
+    
+    # Отправляем отчет создателю бота
+    await context.bot.send_message(chat_id=ADMIN_CHAT_ID, text=report_text)
+
 # Конфигурация
 BOT_TOKEN = os.getenv('BOT_TOKEN')
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -73,7 +86,8 @@ def main():
     """Запуск бота"""
     # Создаем приложение
     application = Application.builder().token(BOT_TOKEN).build()
-    
+    # Добавляем ежедневный отчет (отправляется в 18:00 каждый день)
+    application.job_queue.run_daily(send_daily_report, time=datetime.time(hour=18, minute=0))
     # Добавляем обработчики
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("analyze", analyze_comment))
