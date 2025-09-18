@@ -13,7 +13,7 @@ CHANNEL_ID = '-1001234567890'  # ID вашего канала (начинает�
 GIGACHAT_API_URL = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 GIGACHAT_API_KEY = "MDE5OTVlMWUtNmZhMi03YmQ1LTgyZWUtY2E1MjFhNTA5YzI3OjJmNGI3M2E0LWVmZDgtNGFmOS1iODFhLTVmOThmMzczMmQ5NQ=="  # Замените на ваш реальный ключ
 GIGACHAT_MODEL = "GIGACHAT_API_PERS"  # Или "GigaChat-Plus" для более мощной версии
-CHANNEL_ID = "01995e1e-6fa2-7bd5-82ee-ca521a509c27"  # В формате -1001234567890
+CHANNEL_ID = "-1003030620712"  # В формате -1001234567890
 
 # Настройка логирования
 logging.basicConfig(
