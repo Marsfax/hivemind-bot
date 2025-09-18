@@ -33,18 +33,21 @@ def check_environment_variables():
     
     missing_vars = []
     invalid_vars = []
+    values = {}
     
     for var, config in required_vars.items():
         value = os.getenv(var)
+        values[var] = value
+        
         if not value:
             missing_vars.append(var)
         elif not config['validator'](value):
             invalid_vars.append((var, config['error_msg']))
     
-    return missing_vars, invalid_vars
+    return missing_vars, invalid_vars, values
 
 # Проверяем переменные окружения
-missing_vars, invalid_vars = check_environment_variables()
+missing_vars, invalid_vars, env_values = check_environment_variables()
 
 if missing_vars:
     logger.error(f"Отсутствуют обязательные переменные окружения: {', '.join(missing_vars)}")
@@ -56,9 +59,10 @@ if invalid_vars:
         logger.error(f"Неверный формат переменной {var}: {error_msg}")
     sys.exit(1)
 
-BOT_TOKEN = os.getenv('8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0')
-DEEPSEEK_API_KEY = os.getenv('sk-2850aebc4d6f4f66b839bd761bf5f083')
-CHANNEL_ID = os.getenv('-1003030620712')
+# Используем значения, полученные при проверке
+BOT_TOKEN = env_values['8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0']
+DEEPSEEK_API_KEY = env_values['sk-2850aebc4d6f4f66b839bd761bf5f083']
+CHANNEL_ID = env_values['-1003030620712']
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 
 logger.info("Все переменные окружения загружены корректно")
