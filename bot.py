@@ -67,16 +67,37 @@ async def analyze_comment(update: Update, context: ContextTypes.DEFAULT_TYPE):
     }
     
     try:
-        import requests
-        response = requests.post(DEEPSEEK_API_URL, json=payload, headers=headers)
+        logger.info(f"Отправка запроса к DeepSeek API: {comment_text[:50]}...")
+        response = requests.post(DEEPSEEK_API_URL, json=payload, headers=headers, timeout=30)
+        
+        # Проверяем статус ответа
+        if response.status_code != 200:
+            logger.error(f"Ошибка API DeepSeek: {response.status_code} - {response.text}")
+            await update.message.reply_text("⚠️ Ошибка при обращении к сервису анализа. Попробуйте позже.")
+            return
+            
         result = response.json()
         
+        # Проверяем структуру ответа
+        if 'choices' not in result or len(result['choices']) == 0:
+            logger.error(f"Неожиданный формат ответа от DeepSeek: {result}")
+            await update.message.reply_text("⚠️ Получен неожиданный ответ от сервиса анализа.")
+            return
+            
         ai_response = result['choices'][0]['message']['content']
+        logger.info(f"Получен ответ от DeepSeek: {ai_response[:50]}...")
+        
         await update.message.reply_text(f"🔍 Результат анализа:\n\n{ai_response}")
         
+    except requests.exceptions.Timeout:
+        logger.error("Таймаут при запросе к DeepSeek API")
+        await update.message.reply_text("⚠️ Сервис анализа не отвечает. Попробуйте позже.")
+    except requests.exceptions.ConnectionError:
+        logger.error("Ошибка соединения с DeepSeek API")
+        await update.message.reply_text("⚠️ Ошибка соединения с сервисом анализа.")
     except Exception as e:
-        logger.error(f"Ошибка при запросе к DeepSeek: {e}")
-        await update.message.reply_text("⚠️ Произошла ошибка при анализе. Попробуйте позже.")
+        logger.error(f"Неожиданная ошибка при запросе к DeepSeek: {e}")
+        await update.message.reply_text("⚠️ Произошла непредвиденная ошибка при анализе.")
 
 def main():
     """Запуск бота"""
@@ -90,6 +111,5 @@ def main():
     # Запускаем бота
     application.run_polling()
     logger.info("Бот запущен!")
-
 if __name__ == '__main__':
     main()
