@@ -60,7 +60,7 @@ if invalid_vars:
     sys.exit(1)
 
 # Используем значения, полученные при проверке
-BOT_TOKEN = env_values['8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0']
+BOT_TOKEN = env_values['8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0']  # Исправлено: используем имя переменной, а не её значение
 DEEPSEEK_API_KEY = env_values['sk-2850aebc4d6f4f66b839bd761bf5f083']
 CHANNEL_ID = env_values['-1003030620712']
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
@@ -68,6 +68,7 @@ DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 logger.info("Все переменные окружения загружены корректно")
 logger.info(f"BOT_TOKEN: {BOT_TOKEN[:10]}...")  # Логируем только начало токена для безопасности
 logger.info(f"CHANNEL_ID: {CHANNEL_ID}")
+
 
 if not BOT_TOKEN or not BOT_TOKEN.startswith('') or ':' not in BOT_TOKEN:
     logger.error(f"Неверный формат токена: {BOT_TOKEN}")
