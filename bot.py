@@ -3,7 +3,6 @@ import logging
 import sys
 from dotenv import load_dotenv
 
-
 # Загрузка переменных окружения
 load_dotenv()
 
@@ -15,23 +14,56 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Проверка обязательных переменных окружения
-required_vars = ['BOT_TOKEN', 'DEEPSEEK_API_KEY', 'CHANNEL_ID']
-missing_vars = [var for var in required_vars if not os.getenv(var)]
+def check_environment_variables():
+    """Проверяет наличие и корректность обязательных переменных окружения"""
+    required_vars = {
+        'BOT_TOKEN': {
+            'validator': lambda x: x and x.startswith('') and ':' in x,
+            'error_msg': 'Токен бота должен быть в формате "1234567890:ABCDEF"'
+        },
+        'DEEPSEEK_API_KEY': {
+            'validator': lambda x: x and len(x) > 20,
+            'error_msg': 'API ключ DeepSeek должен быть не менее 20 символов'
+        },
+        'CHANNEL_ID': {
+            'validator': lambda x: x and (x.startswith('-100') or x.startswith('@')),
+            'error_msg': 'ID канала должен начинаться с -100 или @'
+        }
+    }
+    
+    missing_vars = []
+    invalid_vars = []
+    
+    for var, config in required_vars.items():
+        value = os.getenv(var)
+        if not value:
+            missing_vars.append(var)
+        elif not config['validator'](value):
+            invalid_vars.append((var, config['error_msg']))
+    
+    return missing_vars, invalid_vars
+
+# Проверяем переменные окружения
+missing_vars, invalid_vars = check_environment_variables()
 
 if missing_vars:
-    error_msg = f"Отсутствуют обязательные переменные окружения: {', '.join(missing_vars)}"
-    logger.error(error_msg)
-    
-    # Вывод всех переменных окружения для отладки (не для продакшена)
-    logger.info("Доступные переменные окружения:")
-    for key, value in os.environ.items():
-        logger.info(f"{key}: {value}")
+    logger.error(f"Отсутствуют обязательные переменные окружения: {', '.join(missing_vars)}")
+    logger.info("Пожалуйста, установите эти переменные в настройках Railway")
+    sys.exit(1)
 
-# Конфигурация
+if invalid_vars:
+    for var, error_msg in invalid_vars:
+        logger.error(f"Неверный формат переменной {var}: {error_msg}")
+    sys.exit(1)
+
 BOT_TOKEN = os.getenv('8217261903:AAHxaez-JDKoqVMz5KTUoWIbjMVDB_wzyO0')
 DEEPSEEK_API_KEY = os.getenv('sk-2850aebc4d6f4f66b839bd761bf5f083')
-CHANNEL_ID = os.getenv('-1003030620712')  # ID вашего канала
+CHANNEL_ID = os.getenv('-1003030620712')
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
+
+logger.info("Все переменные окружения загружены корректно")
+logger.info(f"BOT_TOKEN: {BOT_TOKEN[:10]}...")  # Логируем только начало токена для безопасности
+logger.info(f"CHANNEL_ID: {CHANNEL_ID}")
 
 if not BOT_TOKEN or not BOT_TOKEN.startswith('') or ':' not in BOT_TOKEN:
     logger.error(f"Неверный формат токена: {BOT_TOKEN}")
